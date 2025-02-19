@@ -11,7 +11,6 @@ public class GameEndManager : NetworkBehaviour
             if (NetworkManager.Singleton.ConnectedClientsList.Count == 1)
             {
                 Debug.Log("Game Over! Player Wins!");
-                // ทำการสิ้นสุดเกม
             }
         }
     }

@@ -20,9 +20,12 @@ public class BombTimer : NetworkBehaviour
                 countdown -= Time.deltaTime;
                 if (countdown <= 0)
                 {
-                    // ลบผู้เล่นที่ถือระเบิดออกจากการแข่งขัน
                     Debug.Log("Player failed to pass the bomb. Removing...");
-                    NetworkManager.Singleton.DisconnectClient(BombManager.playerWithBomb.Value);
+
+                    ulong clientIdToDisconnect = BombManager.playerWithBomb.Value;
+
+                    NetworkManager.Singleton.DisconnectClient(clientIdToDisconnect);
+
                     ResetBomb();
                 }
             }
@@ -31,9 +34,11 @@ public class BombTimer : NetworkBehaviour
 
     void ResetBomb()
     {
-        // สุ่มระเบิดให้ผู้เล่นคนอื่น
-        ulong randomPlayer = NetworkManager.Singleton.ConnectedClientsList[Random.Range(0, NetworkManager.Singleton.ConnectedClientsList.Count)].ClientId;
-        BombManager.playerWithBomb.Value = randomPlayer;
-        countdown = timer;
+        if (NetworkManager.Singleton.ConnectedClientsList.Count > 1)
+        {
+            ulong randomPlayer = NetworkManager.Singleton.ConnectedClientsList[Random.Range(0, NetworkManager.Singleton.ConnectedClientsList.Count)].ClientId;
+            BombManager.playerWithBomb.Value = randomPlayer;
+        }
     }
+
 }
