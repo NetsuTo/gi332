@@ -1,11 +1,13 @@
+﻿using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
 namespace StarterAssets
 {
-	public class StarterAssetsInputs : MonoBehaviour
+	public class StarterAssetsInputs : NetworkBehaviour
 	{
 		[Header("Character Input Values")]
 		public Vector2 move;
@@ -20,8 +22,18 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
+        void Start()
+        {
+            if (!IsOwner)
+            {
+                enabled = false; // ปิดการควบคุมของผู้เล่นอื่น
+                return;
+            }
+        }
+
+
 #if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
+        public void OnMove(InputValue value)
 		{
 			MoveInput(value.Get<Vector2>());
 		}
@@ -75,6 +87,13 @@ namespace StarterAssets
 		{
 			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
 		}
-	}
-	
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other.CompareTag("Bomb"))
+            {
+                other.GetComponent<ActivateBomb>().PassBombServerRpc(OwnerClientId);
+            }
+        }
+    }
 }
