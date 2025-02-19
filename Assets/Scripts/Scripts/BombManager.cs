@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BombManager : NetworkBehaviour
 {
-    public static NetworkVariable<ulong> playerWithBomb = new NetworkVariable<ulong>(NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public static NetworkVariable<ulong> playerWithBomb = new NetworkVariable<ulong>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     void Start()
     {
