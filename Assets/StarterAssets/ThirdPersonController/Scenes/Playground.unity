@@ -1506,6 +1506,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  timeText: {fileID: 830952096}
 --- !u!114 &2107159387
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1520,6 +1521,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   timer: 30
+  countdown: 0
+  countdownText: {fileID: 830952098}
 --- !u!114 &2107159388
 MonoBehaviour:
   m_ObjectHideFlags: 0
