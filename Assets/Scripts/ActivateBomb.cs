@@ -6,7 +6,6 @@ public class ActivateBomb : NetworkBehaviour
 {
     [SerializeField] private float explosionTime = 10f;
     [SerializeField] private float cooldownAfterExplode = 3f;
-    [SerializeField] private GameObject explosionTextUI;
 
     [SerializeField] private NetworkVariable<ulong> currentHolder = new NetworkVariable<ulong>();
     private float timer;
@@ -101,24 +100,7 @@ public class ActivateBomb : NetworkBehaviour
                 playerObj.Despawn();
 
             NetworkObject.Despawn();
-            ShowExplosionTextClientRpc();
 
-            //Invoke(nameof(NotifyManager), cooldownAfterExplode);
-        }
-    }
-
-    /*void NotifyManager()
-    {
-        FindObjectOfType<GameManager>().CheckPlayers();
-    }*/
-
-    [ClientRpc]
-    void ShowExplosionTextClientRpc()
-    {
-        if (explosionTextUI != null)
-        {
-            GameObject ui = Instantiate(explosionTextUI);
-            Destroy(ui, 2f);
         }
     }
 }

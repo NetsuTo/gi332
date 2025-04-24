@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1494437397384874106}
   - component: {fileID: 6463507954979764462}
   m_Layer: 5
-  m_Name: Time
+  m_Name: TimeText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

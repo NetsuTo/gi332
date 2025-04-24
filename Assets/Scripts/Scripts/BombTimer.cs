@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class BombTimer : NetworkBehaviour
 {
-    public float timer = 10f; // เวลานับถอยหลังเริ่มต้น
+    public float timer = 10f;
     public float countdown;
-    [SerializeField] private TextMeshProUGUI countdownText; // UI Text แสดงเวลา
-
+    [SerializeField] private TextMeshProUGUI countdownText;
+    
     void Start()
     {
         countdown = timer;
@@ -17,21 +17,29 @@ public class BombTimer : NetworkBehaviour
     {
         if (BombManager.Instance == null) return;
 
-        if (IsServer && BombManager.playerWithBomb.Value == NetworkManager.Singleton.LocalClientId)
+        if (BombManager.isGameStart.Value == true)
         {
-            countdown -= Time.deltaTime;
-            UpdateUI();
 
-            if (countdown <= 0)
+            if (IsClient)
             {
-                Debug.Log("Player exploded! Removing from game...");
-                ulong clientIdToRemove = BombManager.playerWithBomb.Value;
-                RemovePlayerFromGameServerRpc(clientIdToRemove); // เรียกใช้ ServerRpc
+                if (BombManager.playerWithBomb.Value == NetworkManager.Singleton.LocalClientId)
+                {
+                    countdown -= Time.deltaTime;
+                    UpdateUI();
+
+                    if (countdown <= 0)
+                    {
+                        Debug.Log("Player exploded! Removing from game...");
+                        ulong clientIdToRemove = BombManager.playerWithBomb.Value;
+                        RemovePlayerFromGameServerRpc(clientIdToRemove);
+                    }
+                }
             }
-        }
-        else if (IsClient)
-        {
-            UpdateUI();
+            /*
+            else if (IsClient)
+            {
+                UpdateUI();
+            }*/
         }
     }
 
@@ -39,7 +47,8 @@ public class BombTimer : NetworkBehaviour
     {
         if (BombManager.playerWithBomb.Value == NetworkManager.Singleton.LocalClientId && countdownText != null)
         {
-            countdownText.text = countdown.ToString("F1") + "s"; // อัปเดตค่าเวลา
+            countdownText.gameObject.SetActive(true);
+            countdownText.text = countdown.ToString("F1") + "s";
         }
     }
 
@@ -50,15 +59,14 @@ public class BombTimer : NetworkBehaviour
 
         if (playerObject != null)
         {
-            // ซ่อนผู้เล่นที่ระเบิดจากหน้าจอทุกคน
             playerObject.GetComponent<NetworkObject>().Despawn(true);
             Debug.Log($"Player {playerId} removed!");
 
-            // ส่งระเบิดให้ผู้เล่นใหม่
             ResetBomb();
         }
     }
 
+   
     void ResetBomb()
     {
         if (NetworkManager.Singleton.ConnectedClientsList.Count > 1)
@@ -67,10 +75,10 @@ public class BombTimer : NetworkBehaviour
             do
             {
                 randomPlayer = NetworkManager.Singleton.ConnectedClientsList[Random.Range(0, NetworkManager.Singleton.ConnectedClientsList.Count)].ClientId;
-            } while (randomPlayer == BombManager.playerWithBomb.Value); // หลีกเลี่ยงให้ระเบิดกลับไปที่ผู้เล่นเดิม
+            } while (randomPlayer == BombManager.playerWithBomb.Value);
 
             BombManager.playerWithBomb.Value = randomPlayer;
         }
-        countdown = timer; // รีเซ็ตเวลา
+        countdown = timer;
     }
 }
