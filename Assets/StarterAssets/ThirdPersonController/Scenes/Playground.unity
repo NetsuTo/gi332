@@ -1520,8 +1520,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  timer: 30
-  countdown: 0
+  timer: 10
+  countdown: 3
   countdownText: {fileID: 830952098}
 --- !u!114 &2107159388
 MonoBehaviour:

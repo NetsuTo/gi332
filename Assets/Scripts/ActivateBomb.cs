@@ -5,9 +5,14 @@ using UnityEngine;
 public class ActivateBomb : NetworkBehaviour
 {
     [SerializeField] private float explosionTime = 10f;
-    [SerializeField] private float timer;
+    [SerializeField] private float cooldownAfterExplode = 3f;
+    [SerializeField] private GameObject explosionTextUI;
 
     [SerializeField] private NetworkVariable<ulong> currentHolder = new NetworkVariable<ulong>();
+    private float timer;
+    private bool exploded = false;
+
+    private GameObject nearbyPlayer;
     private Camera playerCamera;
 
     void Start()
@@ -17,7 +22,7 @@ public class ActivateBomb : NetworkBehaviour
             timer = explosionTime;
         }
 
-        playerCamera = Camera.main;  // ใช้ Camera หลักของผู้เล่น
+        playerCamera = Camera.main;
     }
 
     void Update()
@@ -32,8 +37,7 @@ public class ActivateBomb : NetworkBehaviour
             }
         }
 
-        // ตรวจสอบการคลิกซ้ายของผู้เล่น
-        if (IsOwner && Input.GetMouseButtonDown(0)) // คลิกซ้าย
+        if (IsOwner && Input.GetMouseButtonDown(0))
         {
             AttemptPassBomb();
         }
@@ -41,24 +45,30 @@ public class ActivateBomb : NetworkBehaviour
 
     private void AttemptPassBomb()
     {
-        if (IsServer)
+        if (IsOwner && nearbyPlayer != null)
         {
-            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            ulong targetId = nearbyPlayer.GetComponent<NetworkObject>().OwnerClientId;
+            PassBombServerRpc(targetId);
+        }
+    }
 
-            if (Physics.Raycast(ray, out hit))
+    private void OnTriggerEnter(Collider other)
+    {
+        if (IsOwner && other.CompareTag("Player"))
+        {
+            ulong targetId = other.GetComponent<NetworkObject>().OwnerClientId;
+            if (targetId != currentHolder.Value)
             {
-                // ตรวจสอบว่า hit object เป็น player หรือไม่
-                if (hit.collider.CompareTag("Player")) // เปลี่ยนเป็น Tag ของผู้เล่น
-                {
-                    NetworkObject hitPlayer = hit.collider.GetComponent<NetworkObject>();
-                    if (hitPlayer != null && hitPlayer.IsOwner == false) // ตรวจสอบว่าไม่ใช่ผู้เล่นที่ถือระเบิด
-                    {
-                        ulong newHolderId = hitPlayer.OwnerClientId;
-                        PassBombServerRpc(newHolderId);
-                    }
-                }
+                nearbyPlayer = other.gameObject;
             }
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (IsOwner && other.gameObject == nearbyPlayer)
+        {
+            nearbyPlayer = null;
         }
     }
 
@@ -66,19 +76,49 @@ public class ActivateBomb : NetworkBehaviour
     public void PassBombServerRpc(ulong newHolderId)
     {
         currentHolder.Value = newHolderId;
-        NetworkManager.SpawnManager.GetPlayerNetworkObject(newHolderId).TryGetComponent(out StarterAssetsInputs player);
 
-        transform.SetParent(player.transform);
-        transform.localPosition = Vector3.up;
-        timer = explosionTime;
+        NetworkObject target = NetworkManager.SpawnManager.GetPlayerNetworkObject(newHolderId);
+        if (target != null && target.TryGetComponent(out StarterAssetsInputs player))
+        {
+            transform.SetParent(player.transform);
+            transform.localPosition = Vector3.up;
+            timer = explosionTime;
+            exploded = false;
+        }
     }
 
     void Explode()
     {
-        Debug.Log($"Boom! Player {currentHolder.Value} ขิต!!!");
-        NetworkManager.SpawnManager.GetPlayerNetworkObject(currentHolder.Value).Despawn();
-        NetworkObject.Despawn();
+        if (exploded) return;
+        exploded = true;
 
+        Debug.Log($"Boom! Player {currentHolder.Value} ขิต!!!");
+
+        if (IsServer)
+        {
+            NetworkObject playerObj = NetworkManager.SpawnManager.GetPlayerNetworkObject(currentHolder.Value);
+            if (playerObj != null)
+                playerObj.Despawn();
+
+            NetworkObject.Despawn();
+            ShowExplosionTextClientRpc();
+
+            //Invoke(nameof(NotifyManager), cooldownAfterExplode);
+        }
+    }
+
+    /*void NotifyManager()
+    {
         FindObjectOfType<GameManager>().CheckPlayers();
+    }*/
+
+    [ClientRpc]
+    void ShowExplosionTextClientRpc()
+    {
+        if (explosionTextUI != null)
+        {
+            GameObject ui = Instantiate(explosionTextUI);
+            Destroy(ui, 2f);
+        }
     }
 }

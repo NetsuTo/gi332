@@ -11,22 +11,36 @@ public class GameManager : NetworkBehaviour
     {
         if (IsServer)
         {
-            Invoke("SpawnBomb", 2f);
+            NetworkManager.OnClientConnectedCallback += HandleClientConnected;
         }
     }
+
+    void HandleClientConnected(ulong clientId)
+    {
+        if (!players.Contains(clientId))
+            players.Add(clientId);
+
+        if (players.Count > 2 && !bombSpawned)
+            Invoke("SpawnBomb", 2f);
+    }
+
+    private bool bombSpawned = false;
 
     void SpawnBomb()
     {
         if (players.Count > 1)
         {
+            bombSpawned = true;
+
             ulong randomPlayerId = players[Random.Range(0, players.Count)];
             GameObject bomb = Instantiate(bombPrefab);
-            bomb.GetComponent<NetworkObject>().Spawn();
+            NetworkObject netObj = bomb.GetComponent<NetworkObject>();
+            netObj.Spawn();
             bomb.GetComponent<ActivateBomb>().PassBombServerRpc(randomPlayerId);
         }
     }
 
-    public void CheckPlayers()
+    /*public void CheckPlayers()
     {
         players.RemoveAll(id => NetworkManager.SpawnManager.GetPlayerNetworkObject(id) == null);
 
@@ -35,7 +49,11 @@ public class GameManager : NetworkBehaviour
             Debug.Log($"{players[0]} WIN!!!");
             Invoke("RestartGame", 3f);
         }
-    }
+        else
+        {
+            Invoke("SpawnBomb", 2f);
+        }
+    }*/
 
     void RestartGame()
     {
