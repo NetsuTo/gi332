@@ -915,10 +915,10 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 59f2b087-e279-4a36-a10f-83f1a8b9a889
+  cloudProjectId: 19e6ddea-e1eb-4553-b23a-60b08b6f7dd1
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Gi332_Project1 (1)
+  projectName: gi332
   organizationId: unity_b40d8cb68f93bf916a94
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
