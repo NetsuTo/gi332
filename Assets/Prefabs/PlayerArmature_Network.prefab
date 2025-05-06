@@ -85,6 +85,7 @@ GameObject:
   - component: {fileID: 2920227536632307790}
   - component: {fileID: -8106018518412947193}
   - component: {fileID: 7239207903178395343}
+  - component: {fileID: 2376536078330019158}
   m_Layer: 8
   m_Name: PlayerArmature_Network
   m_TagString: Player
@@ -465,6 +466,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   timer: 10
   countdown: 0
+  isBomb: 0
   countdownText: {fileID: 1539305389597474116}
 --- !u!114 &7239207903178395343
 MonoBehaviour:
@@ -480,6 +482,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   myButton: {fileID: 2026555453967381154}
+--- !u!114 &2376536078330019158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151261827643956051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8df1ad451aa54c64fa8d96b8453a88cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  bombTimer: {fileID: -8106018518412947193}
 --- !u!1 &427836245103811868
 GameObject:
   m_ObjectHideFlags: 0
