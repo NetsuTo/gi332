@@ -6,6 +6,9 @@ public class BombTimer : NetworkBehaviour
 {
     public float timer = 10f;
     public float countdown;
+
+    public bool isBomb = false;
+
     [SerializeField] private TextMeshProUGUI countdownText;
     
     void Start()
