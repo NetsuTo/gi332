@@ -42,6 +42,7 @@ public class BombManager : NetworkBehaviour
             playerWithBomb.Value = randomPlayer;
             Debug.Log("player count : "+ NetworkManager.Singleton.ConnectedClientsList.Count);
             Debug.Log("player id : "+ playerWithBomb.Value);
+            Cursor.visible = false;
         }
     }
     
