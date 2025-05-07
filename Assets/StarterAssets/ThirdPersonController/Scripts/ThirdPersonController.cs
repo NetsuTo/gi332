@@ -196,7 +196,6 @@ namespace StarterAssets
 
         private void Move()
         {
-            // กำหนดความเร็วในการเคลื่อนที่ (เดินหรือวิ่ง)
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 
@@ -204,7 +203,6 @@ namespace StarterAssets
             float speedOffset = 0.1f;
             float inputMagnitude = _input.analogMovement ? _input.move.magnitude : 1f;
 
-            // คำนวณความเร็ว
             if (currentHorizontalSpeed < targetSpeed - speedOffset || currentHorizontalSpeed > targetSpeed + speedOffset)
             {
                 _speed = Mathf.Lerp(currentHorizontalSpeed, targetSpeed * inputMagnitude, Time.deltaTime * SpeedChangeRate);
@@ -218,24 +216,14 @@ namespace StarterAssets
             _animationBlend = Mathf.Lerp(_animationBlend, targetSpeed, Time.deltaTime * SpeedChangeRate);
             if (_animationBlend < 0.01f) _animationBlend = 0f;
 
-            // คำนวณทิศทางการเคลื่อนที่ของผู้เล่นโดยให้กล้องเป็นตัวอ้างอิง
             Vector3 inputDirection = new Vector3(_input.move.x, 0.0f, _input.move.y).normalized;
             if (_input.move != Vector2.zero)
             {
                 if (_mainCamera != null)
                 {
-                    // คำนวณทิศทางที่กล้องหันไป
                     _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg + _mainCamera.transform.eulerAngles.y;
                     float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity, RotationSmoothTime);
                     transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-
-                    // ป้องกันการเคลื่อนที่ของกล้องมากเกินไป
-                    Vector3 targetCameraPosition = CinemachineCameraTarget.transform.position;
-                    Vector3 currentCameraPosition = _mainCamera.transform.position;
-
-                    // จำกัดการเคลื่อนที่ของกล้องโดยการใช้ Lerp
-                    float smoothFactor = 0.05f;  // ปรับให้การเคลื่อนที่ของกล้องช้าลง
-                    _mainCamera.transform.position = Vector3.Lerp(currentCameraPosition, targetCameraPosition, smoothFactor);
                 }
                 else
                 {
@@ -244,20 +232,15 @@ namespace StarterAssets
                 }
             }
 
-            // คำนวณทิศทางที่ต้องการให้ผู้เล่นเดินไปตาม
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
             _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) + new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
-            // ส่งค่าความเร็วและการเคลื่อนไหวไปยัง Animator
             if (_hasAnimator)
             {
                 _animator.SetFloat(_animIDSpeed, _animationBlend);
                 _animator.SetFloat(_animIDMotionSpeed, inputMagnitude);
             }
         }
-
-
-
 
         private void JumpAndGravity()
         {
