@@ -7,6 +7,8 @@ using System.Collections;
 
 public class BombManager : NetworkBehaviour
 {
+    [SerializeField] private GameObject winPanel;  // Panel สำหรับ Win
+    [SerializeField] private GameObject losePanel; // Panel สำหรับ Lose
     [SerializeField] private GameObject timeText;
     [SerializeField] private TextMeshProUGUI codeText;
     public static BombManager Instance { get; private set; }
@@ -16,6 +18,9 @@ public class BombManager : NetworkBehaviour
     public static NetworkVariable<bool> isGameStart = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [SerializeField] private HostGameManager hostGameManager;
+
+    public static int countPlayer = 0;
+
     void Awake()
     {
         Instance = this;
@@ -27,6 +32,21 @@ public class BombManager : NetworkBehaviour
         StartCoroutine(WaitForJoinCode());
     }
 
+    void Update()
+    {
+        if (IsClient)
+        {
+            if (countPlayer == 1)
+            {
+                // ผู้เล่นคนสุดท้ายชนะ (แสดงหน้า Win)
+                if (isGameStart.Value)
+                {
+                    ShowWinUI();
+                }
+            }
+        }
+    }
+
     private IEnumerator WaitForJoinCode()
     {
         while (string.IsNullOrEmpty(HostGameManager.StaticJoinCode))
@@ -36,52 +56,58 @@ public class BombManager : NetworkBehaviour
 
         codeText.text = HostGameManager.StaticJoinCode;
     }
+
     private void OnNumPlayerReadyChanged(int oldValue, int newValue)
     {
         if (IsServer)
         {
-            Debug.Log(newValue);
             if (newValue == NetworkManager.Singleton.ConnectedClientsList.Count)
             {
                 isGameStart.Value = true;
-                Debug.Log(isGameStart.Value);
                 AllPlayerReady();
             }
         }
     }
+
     private void AllPlayerReady()
     {
-        if (IsServer)
+        if (IsServer && countPlayer > 1)
         {
             ulong randomPlayer = NetworkManager.Singleton.ConnectedClientsList[Random.Range(0, NetworkManager.Singleton.ConnectedClientsList.Count)].ClientId;
             playerWithBomb.Value = randomPlayer;
-            Debug.Log("player count : " + NetworkManager.Singleton.ConnectedClientsList.Count);
-            Debug.Log("player id : " + playerWithBomb.Value);
-            Cursor.visible = false;
+            countPlayer = NetworkManager.Singleton.ConnectedClientsList.Count;
         }
     }
 
-    public override void OnNetworkSpawn()
+    // ฟังก์ชันแสดงหน้า Win
+    private void ShowWinUI()
     {
-        base.OnNetworkSpawn();
-        // UpdateTimeTextVisibility();
+        if (winPanel != null)
+        {
+            winPanel.SetActive(true); // แสดง UI Win
+        }
     }
+
+    // ฟังก์ชันแสดงหน้า Lose
+    private void ShowLoseUI()
+    {
+        if (losePanel != null)
+        {
+            losePanel.SetActive(true); // แสดง UI Lose
+        }
+    }
+
+    // ฟังก์ชันนี้จะถูกเรียกเมื่อผู้เล่นตาย
+    public void PlayerDied()
+    {
+        if (IsServer)
+        {
+            ShowLoseUI();  // แสดงหน้า Lose สำหรับผู้เล่นที่ตาย
+        }
+    }
+
     public void SetHostGameManager(HostGameManager manager)
     {
         hostGameManager = manager;
     }
-    /*
-        private void Update()
-        {
-            UpdateTimeTextVisibility();
-        }
-
-        private void UpdateTimeTextVisibility()
-        {
-            if (timeText != null)
-            {
-                timeText.SetActive(playerWithBomb.Value == NetworkManager.Singleton.LocalClientId);
-            }
-        }
-        */
 }

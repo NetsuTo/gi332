@@ -1,6 +1,8 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
 using TMPro;
+using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class BombTimer : NetworkBehaviour
 {
@@ -9,6 +11,16 @@ public class BombTimer : NetworkBehaviour
     public bool isBomb = false;
 
     [SerializeField] private TextMeshProUGUI countdownText;
+    [SerializeField] private GameObject showBomb;
+
+
+    private ulong ownerClientId;
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+        ownerClientId = GetComponent<NetworkObject>().OwnerClientId;
+    }
 
     void Start()
     {
@@ -17,6 +29,7 @@ public class BombTimer : NetworkBehaviour
 
     void Update()
     {
+
         if (BombManager.Instance == null) return;
 
         if (BombManager.isGameStart.Value)
@@ -27,18 +40,24 @@ public class BombTimer : NetworkBehaviour
                 {
                     countdown -= Time.deltaTime;
                     UpdateUI();
+                    ShowBomb(true); // ✅ แสดง GameObject showBomb
 
                     if (countdown <= 0)
                     {
+                        BombManager.countPlayer--;
                         Debug.Log("Player exploded! Removing from game...");
+                        
                         ulong clientIdToRemove = BombManager.playerWithBomb.Value;
+
                         RemovePlayerFromGameServerRpc(clientIdToRemove);
                     }
                 }
                 else
                 {
                     HideUI();
+                    ShowBomb(false); // ✅ ซ่อน GameObject showBomb
                 }
+
             }
         }
     }
@@ -86,6 +105,7 @@ public class BombTimer : NetworkBehaviour
             } while (randomPlayer == BombManager.playerWithBomb.Value);
 
             BombManager.playerWithBomb.Value = randomPlayer;
+            SetBombVisualClientRpc(randomPlayer);
         }
         countdown = timer;
 
@@ -112,6 +132,7 @@ public class BombTimer : NetworkBehaviour
         {
             // เปลี่ยนผู้เล่นที่ถือระเบิด
             BombManager.playerWithBomb.Value = targetPlayerId;
+            SetBombVisualClientRpc(targetPlayerId);
             Debug.Log($"Bomb passed to player {targetPlayerId}");
 
             // รีเซ็ตเวลาระเบิดบน Server
@@ -128,5 +149,24 @@ public class BombTimer : NetworkBehaviour
     {
         countdown = timer;
         UpdateUI();
+        ShowBomb(BombManager.playerWithBomb.Value == NetworkManager.Singleton.LocalClientId);
     }
+
+
+    private void ShowBomb(bool show)
+    {
+        if (showBomb != null)
+        {
+            showBomb.SetActive(show);
+        }
+    }
+
+    [ClientRpc]
+    void SetBombVisualClientRpc(ulong playerWithBombId)
+    {
+        bool isOwnerHasBomb = ownerClientId == playerWithBombId;
+        ShowBomb(isOwnerHasBomb);
+    }
+
+
 }
